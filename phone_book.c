@@ -62,7 +62,17 @@ int main(int argc, char *argv[]) {
     fclose(fp);
     exit(0);
   } else if (strcmp(argv[1], "search") == 0) {  /* Handle search */
-    printf("NOT IMPLEMENTED!\n"); /* TBD  */
+        if(argc != 3)
+        {
+            print_usage("Improper arguments for search",argv[0]);
+            exit(1);
+        }
+
+        FILE *fp = open_db_file();
+        char *name = argv[2];
+        search(fp,name);
+        fclose(fp);
+        exit(0);
   } else if (strcmp(argv[1], "delete") == 0) {  /* Handle delete */
     if (argc != 3) {
       print_usage("Improper arguments for delete", argv[0]);
@@ -93,8 +103,14 @@ FILE *open_db_file() {
 }
   
 void free_entries(entry *p) {
-  /* TBD */
-  printf("Memory is not being freed. This needs to be fixed!\n");  
+    entry *del = NULL;
+
+    while(p != NULL)
+    {
+        del = p;
+        p = p->next;
+        free(del);
+    }
 }
 
 void print_usage(char *message, char *progname) {
@@ -176,13 +192,15 @@ void add(char *name, char *phone) {
 }
 
 void list(FILE *db_file) {
+int count = 0;
   entry *p = load_entries(db_file);
   entry *base = p;
   while (p!=NULL) {
     printf("%-20s : %10s\n", p->name, p->phone);
     p=p->next;
+    count++;
   }
-  /* TBD print total count */
+  printf("Total entries : %d\n",count);
   free_entries(base);
 }
 
@@ -195,19 +213,24 @@ int delete(FILE *db_file, char *name) {
   int deleted = 0;
   while (p!=NULL) {
     if (strcmp(p->name, name) == 0) {
-      /* Matching node found. Delete it from the linked list.
-         Deletion from a linked list like this
-   
-             p0 -> p1 -> p2
-         
-         means we have to make p0->next point directly to p2. The p1
-         "node" is removed and free'd.
-         
-         If the node to be deleted is p0, it's a special case. 
-      */
-
-      /* TBD */
-    }
+            if(p == base)
+            {
+                base = p->next;
+                del = p;
+                free(del);
+                break;
+            }
+            else
+            {
+                del = p; 
+                prev->next = p->next;
+                free(del);
+                break;
+            }
+        }
+        
+        prev = p;
+        p = p->next;
   }
   write_all_entries(base);
   free_entries(base);
